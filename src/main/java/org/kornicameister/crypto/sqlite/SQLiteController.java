@@ -69,13 +69,16 @@ public class SQLiteController {
     }
 
     public void close() {
+        if (CONTROLLER.connectionPool == null) {
+            LOGGER.warn("Connection pool has been initialized...");
+            return;
+        }
         try {
             CONTROLLER.connectionPool.close();
         } catch (SQLException e) {
             LOGGER.warn("Failed to close the connection", e);
         }
     }
-
 
     public Integer add(SchnorrCryptoKey data) throws Exception {
         long startTime = System.nanoTime();

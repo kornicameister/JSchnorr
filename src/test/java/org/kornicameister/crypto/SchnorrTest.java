@@ -12,7 +12,8 @@ import java.util.Properties;
  * @since 0.0.1
  */
 public class SchnorrTest {
-    protected static final String RESOURCES_MONGO_PROPERTIES = "/home/kornicameister/Dropbox/STUDIA/INFORMATYKA/SEMESTR6/PK/laboratoria/JSchnorr/src/main/resources/mongo.properties";
+    protected static final String RESOURCES_MONGO_PROPERTIES = "/home/kornicameister/Dropbox/STUDIA/INFORMATYKA/SEMESTR6/PK/laboratoria/JSchnorr/src/main/resources/schnorr.properties";
+    protected static final String RESOURCES_MONGO_PROPERTIES_2 = "D:\\Dropbox\\STUDIA\\INFORMATYKA\\SEMESTR6\\PK\\laboratoria\\JSchnorr\\src\\main\\resources\\schnorr.properties";
     protected SQLiteController SQLiteController;
 
     @Before
@@ -28,6 +29,8 @@ public class SchnorrTest {
 
     @After
     public void tearDown() throws Exception {
-        SQLiteController.close();
+        if (SQLiteController != null) {
+            SQLiteController.close();
+        }
     }
 }
