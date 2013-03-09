@@ -98,6 +98,8 @@ public class SAlgorithm {
         cryptoKey.setCryptoEPart(eSingParam);
         cryptoKey.setCryptoYPart(ySignParam);
 
+        LOGGER.info(String.format("Successfully encrypted message %s with key %s", message, cryptoKey));
+
         try {
             return SchnorrCryptoKey.addSchnorrKey(cryptoKey, this.controller);
         } catch (Exception e1) {
@@ -109,7 +111,7 @@ public class SAlgorithm {
     /**
      * @see SAlgorithm#sign(String)
      */
-    public Integer sing(FileInputStream message) throws IOException, NoSuchAlgorithmException {
+    public Integer sign(FileInputStream message) throws IOException, NoSuchAlgorithmException {
         SchnorrCryptoKey cryptoKey = new SchnorrCryptoKey();
         BigInteger privKey, pubKey;
         BigInteger rSignParam, ySignParam, eSingParam, kSignParam;
@@ -131,6 +133,8 @@ public class SAlgorithm {
         cryptoKey.setPublicKey(pubKey);
         cryptoKey.setCryptoEPart(eSingParam);
         cryptoKey.setCryptoYPart(ySignParam);
+
+        LOGGER.info(String.format("Successfully encrypted message %s with key %s", message, cryptoKey));
 
         try {
             return SchnorrCryptoKey.addSchnorrKey(cryptoKey, this.controller);
@@ -228,12 +232,9 @@ public class SAlgorithm {
      */
     public BigInteger hashCode(FileInputStream message, BigInteger signParam) throws NoSuchAlgorithmException, IOException {
         InputStream in = new BufferedInputStream(message);
-
-        MessageDigest sha512 = null;
         byte[] block = new byte[1024];
         int count;
-
-        sha512 = MessageDigest.getInstance(SHA_512);
+        MessageDigest sha512 = MessageDigest.getInstance(SHA_512);
 
         while ((count = in.read(block)) != -1)
             sha512.update(block, 0, count);

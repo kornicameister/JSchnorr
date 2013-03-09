@@ -5,8 +5,7 @@ import org.junit.Before;
 import org.kornicameister.crypto.schnorr.exception.PQAGenerationException;
 import org.kornicameister.crypto.sqlite.SQLiteController;
 
-import java.io.FileInputStream;
-import java.util.Properties;
+import java.io.File;
 
 /**
  * @author kornicameister
@@ -19,13 +18,7 @@ public class SchnorrTest {
 
     @Before
     public void setUp() throws Exception, PQAGenerationException {
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(RESOURCES_MONGO_PROPERTIES));
-        this.sqlitecontroller = sqlitecontroller.getConnection(
-                properties.getProperty("database"),
-                properties.getProperty("host"),
-                properties.getProperty("port")
-        );
+        this.sqlitecontroller = sqlitecontroller.getConnection(new File(RESOURCES_MONGO_PROPERTIES));
     }
 
     @After

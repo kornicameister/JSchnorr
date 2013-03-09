@@ -7,11 +7,15 @@ import org.kornicameister.crypto.sqlite.annotations.Id;
 import org.kornicameister.crypto.sqlite.annotations.Table;
 import org.kornicameister.crypto.utils.TimeUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Master of Mongo for JSchnorr.
@@ -33,15 +37,17 @@ public class SQLiteController {
     private static SQLiteController CONTROLLER;
     private Connection connectionPool;
 
-    public static SQLiteController getConnection(String... data) throws ClassNotFoundException, SQLException {
+    public static SQLiteController getConnection(File properties) throws ClassNotFoundException, SQLException, IOException {
         if (SQLiteController.CONTROLLER == null) {
             long startTime = System.nanoTime();
+            Properties properties1 = new Properties();
+            properties1.load(new FileInputStream(properties));
 
             SQLiteController.CONTROLLER = new SQLiteController();
 
             try {
                 Class.forName("org.sqlite.JDBC");
-                String url = "jdbc:sqlite:".concat(data[0]);
+                String url = "jdbc:sqlite:".concat(properties1.getProperty("database"));
                 SQLiteController.CONTROLLER.connectionPool = DriverManager.getConnection(url);
             } catch (ClassNotFoundException cate) {
                 LOGGER.fatal("SQLiteController could not have been initialised due to missing driver", cate);
