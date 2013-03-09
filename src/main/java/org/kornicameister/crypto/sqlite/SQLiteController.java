@@ -29,7 +29,6 @@ import java.util.List;
 public class SQLiteController {
     private final static Logger LOGGER = Logger.getLogger(SQLiteController.class);
     private final static String INSERT = "insert into %name% ( %fields% ) values ( %values% )";
-    private final static String SELECT = "select %fields% from %name%";
     private final static String SELECT_WHERE = "select %fields% from %name% where %where%";
     private static SQLiteController CONTROLLER;
     private Connection connectionPool;
@@ -93,10 +92,9 @@ public class SQLiteController {
         ResultSet result = pStatement.getGeneratedKeys();
         result.next();
         Integer idKey = Integer.valueOf(result.getString(1));
-        data.setModelId(idKey);
         pStatement.close();
 
-        return data.getModelId();
+        return idKey;
     }
 
 

@@ -7,7 +7,6 @@ import org.kornicameister.crypto.SchnorrTest;
 import org.kornicameister.crypto.schnorr.SchnorrCryptoKey;
 
 import java.math.BigInteger;
-import java.util.Random;
 
 /**
  * @author kornicameister
@@ -15,7 +14,6 @@ import java.util.Random;
  */
 public class SchnorrCryptoKeyTest extends SchnorrTest {
     protected SchnorrCryptoKey cryptoKey;
-    private Integer modelId = new Random().nextInt();
     private BigInteger pubKey = BigInteger.TEN;
     private BigInteger privKey = BigInteger.TEN;
     private BigInteger eFactor = BigInteger.TEN;
@@ -27,9 +25,8 @@ public class SchnorrCryptoKeyTest extends SchnorrTest {
         super.setUp();
         this.cryptoKey = new SchnorrCryptoKey();
 
-        this.cryptoKey.setModelId(this.modelId);
-        this.cryptoKey.setFactorE(eFactor);
-        this.cryptoKey.setFactorY(xFactor);
+        this.cryptoKey.setCryptoEPart(eFactor);
+        this.cryptoKey.setCryptoYPart(xFactor);
         this.cryptoKey.setPublicKey(pubKey);
         this.cryptoKey.setPrivateKey(privKey);
     }
@@ -39,6 +36,7 @@ public class SchnorrCryptoKeyTest extends SchnorrTest {
         Integer id = SchnorrCryptoKey.addSchnorrKey(cryptoKey, this.sqlitecontroller);
         SchnorrCryptoKey cryptoKey1 = SchnorrCryptoKey.getSchnorrKey(id, this.sqlitecontroller);
 
+        cryptoKey.setPrimaryKey(id);
         Assert.assertEquals(cryptoKey, cryptoKey1);
     }
 }

@@ -23,7 +23,7 @@ import java.sql.SQLException;
 public class SchnorrCryptoKey {
 
     @Id(column = @Column(name = "id", type = ColumnType.INTEGER))
-    protected Integer modelId;
+    protected Integer primaryKey;
 
     @Column(name = "pub_key", type = ColumnType.BIG_INTEGER)
     private BigInteger publicKey;
@@ -32,21 +32,21 @@ public class SchnorrCryptoKey {
     private BigInteger privateKey;
 
     @Column(name = "e_factor", type = ColumnType.BIG_INTEGER)
-    private BigInteger factorE;
+    private BigInteger cryptoEPart;
 
     @Column(name = "y_factor", type = ColumnType.BIG_INTEGER)
-    private BigInteger factorY;
+    private BigInteger cryptoYPart;
 
     public SchnorrCryptoKey() {
 
     }
 
-    public Integer getModelId() {
-        return modelId;
+    public Integer getPrimaryKey() {
+        return primaryKey;
     }
 
-    public void setModelId(Integer modelId) {
-        this.modelId = modelId;
+    public void setPrimaryKey(Integer primaryKey) {
+        this.primaryKey = primaryKey;
     }
 
     public BigInteger getPublicKey() {
@@ -65,20 +65,20 @@ public class SchnorrCryptoKey {
         this.privateKey = privateKey;
     }
 
-    public BigInteger getFactorE() {
-        return factorE;
+    public BigInteger getCryptoEPart() {
+        return cryptoEPart;
     }
 
-    public void setFactorE(BigInteger factorE) {
-        this.factorE = factorE;
+    public void setCryptoEPart(BigInteger cryptoEPart) {
+        this.cryptoEPart = cryptoEPart;
     }
 
-    public void setFactorY(BigInteger factorX) {
-        this.factorY = factorX;
+    public BigInteger getCryptoYPart() {
+        return cryptoYPart;
     }
 
-    public BigInteger getFactorY() {
-        return factorY;
+    public void setCryptoYPart(BigInteger cryptoYPart) {
+        this.cryptoYPart = cryptoYPart;
     }
 
     public static Integer addSchnorrKey(SchnorrCryptoKey data,
@@ -91,36 +91,39 @@ public class SchnorrCryptoKey {
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("SchnorrCryptoKey{");
-        sb.append("publicKey=").append(publicKey);
-        sb.append(", privateKey=").append(privateKey);
-        sb.append(", factorE=").append(factorE);
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(java.lang.Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof SchnorrCryptoKey)) return false;
 
         SchnorrCryptoKey cryptoKey = (SchnorrCryptoKey) o;
 
-        return !(factorE != null ? !factorE.equals(cryptoKey.factorE) : cryptoKey.factorE != null)
-                && !(factorY != null ? !factorY.equals(cryptoKey.factorY) : cryptoKey.factorY != null)
-                && !(modelId != null ? !modelId.equals(cryptoKey.modelId) : cryptoKey.modelId != null)
-                && !(privateKey != null ? !privateKey.equals(cryptoKey.privateKey) : cryptoKey.privateKey != null)
-                && !(publicKey != null ? !publicKey.equals(cryptoKey.publicKey) : cryptoKey.publicKey != null);
+        return cryptoEPart.equals(cryptoKey.cryptoEPart)
+                && cryptoYPart.equals(cryptoKey.cryptoYPart)
+                && !(primaryKey != null ? !primaryKey.equals(cryptoKey.primaryKey) : cryptoKey.primaryKey != null)
+                && privateKey.equals(cryptoKey.privateKey)
+                && publicKey.equals(cryptoKey.publicKey);
     }
 
     @Override
     public int hashCode() {
-        int result = modelId != null ? modelId.hashCode() : 0;
-        result = 31 * result + (publicKey != null ? publicKey.hashCode() : 0);
-        result = 31 * result + (privateKey != null ? privateKey.hashCode() : 0);
-        result = 31 * result + (factorE != null ? factorE.hashCode() : 0);
-        result = 31 * result + (factorY != null ? factorY.hashCode() : 0);
+        int result = primaryKey != null ? primaryKey.hashCode() : 0;
+        result = 31 * result + publicKey.hashCode();
+        result = 31 * result + privateKey.hashCode();
+        result = 31 * result + cryptoEPart.hashCode();
+        result = 31 * result + cryptoYPart.hashCode();
         return result;
+    }
+
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("SchnorrCryptoKey{");
+        sb.append("publicKey=").append(publicKey);
+        sb.append(", privateKey=").append(privateKey);
+        sb.append(", primaryKey=").append(primaryKey);
+        sb.append(", cryptoYPart=").append(cryptoYPart);
+        sb.append(", cryptoEPart=").append(cryptoEPart);
+        sb.append('}');
+        return sb.toString();
     }
 }

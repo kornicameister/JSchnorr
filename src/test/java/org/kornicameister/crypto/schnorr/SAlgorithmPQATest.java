@@ -3,6 +3,7 @@ package org.kornicameister.crypto.schnorr;
 import org.junit.Before;
 import org.junit.Test;
 import org.kornicameister.crypto.SchnorrTest;
+import org.kornicameister.crypto.schnorr.exception.PQAGenerationException;
 
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -18,7 +19,7 @@ public class SAlgorithmPQATest extends SchnorrTest {
     private SAlgorithmPQA pqa;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws Exception, PQAGenerationException {
         this.certainty = 10;
         this.pqa = SAlgorithmPQA.generate(SComplexity.S_320);
     }
