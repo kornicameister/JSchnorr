@@ -14,7 +14,7 @@ public enum SComplexity {
 
     SComplexity(int i, int i1) {
         this.pBitLength = i;
-        this.qBitLength = i;
+        this.qBitLength = i1;
     }
 
     public int getPBitLength() {

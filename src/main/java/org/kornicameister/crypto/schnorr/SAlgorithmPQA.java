@@ -45,7 +45,7 @@ public class SAlgorithmPQA {
         BigInteger q = generateQFactor(
                 sAlgorithm,
                 BigInteger.probablePrime(
-                        sAlgorithm.complexity.getPBitLength(),
+                        sAlgorithm.complexity.getQBitLength(),
                         sAlgorithm.randomSeed
                 )
         );
@@ -97,8 +97,8 @@ public class SAlgorithmPQA {
         BigInteger p;
         while (true) {
             m = new BigInteger(sAlgorithm.complexity.getPBitLength(), sAlgorithm.randomSeed);
-            mR = m.mod(q.multiply(org.kornicameister.crypto.utils.MathUtils.INTEGER_2));
-            p = m.subtract(mR).subtract(BigInteger.ONE);
+            mR = m.mod(q.multiply(MathUtils.INTEGER_2));
+            p = m.subtract(mR).add(BigInteger.ONE);
             if (p.isProbablePrime(sAlgorithm.certainty)) {
                 LOGGER.info(String.format("Found p being prime\np=%s", p.toString(RADIX)));
                 break;
