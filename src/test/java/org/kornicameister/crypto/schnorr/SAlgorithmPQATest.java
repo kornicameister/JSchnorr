@@ -35,18 +35,19 @@ public class SAlgorithmPQATest extends SchnorrTest {
 
     @Test
     public void testGenerateSave() throws Exception {
-        this.pqa.toProperties(SAlgorithmPQATest.RESOURCES_MONGO_PROPERTIES_2);
+        this.pqa.toProperties(SAlgorithmPQATest.RESOURCES_MONGO_PROPERTIES);
 
         Properties properties = new Properties();
-        properties.load(new FileInputStream(SAlgorithmPQATest.RESOURCES_MONGO_PROPERTIES_2));
+        properties.load(new FileInputStream(SAlgorithmPQATest.RESOURCES_MONGO_PROPERTIES));
 
         assertNotEquals("Failed to save pNumber", properties.getProperty("pNumber"), "");
         assertNotEquals("Failed to save qNumber", properties.getProperty("qNumber"), "");
+        assertNotEquals("Failed to save aNumber", properties.getProperty("aNumber"), "");
     }
 
     @Test
     public void testGenerateLoad() throws Exception {
-        this.pqa.fromPropertes(SAlgorithmPQATest.RESOURCES_MONGO_PROPERTIES_2);
+        this.pqa.fromProperties(SAlgorithmPQATest.RESOURCES_MONGO_PROPERTIES);
 
         assertNotNull("Retrieved p is null", this.pqa.getP() != null);
         assertNotNull("Retrieved q is null", this.pqa.getQ() != null);

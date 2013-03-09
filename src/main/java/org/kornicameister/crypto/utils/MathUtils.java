@@ -1,6 +1,7 @@
 package org.kornicameister.crypto.utils;
 
 import java.math.BigInteger;
+import java.util.Random;
 
 /**
  * Utility class for generating
@@ -13,9 +14,7 @@ import java.math.BigInteger;
  * @author kornicameister
  * @since 0.0.1
  */
-public class MathExponentiationUtils {
-    private static final BigInteger INTEGER_0 = new BigInteger("0");
-    public static final BigInteger INTEGER_1 = new BigInteger("1");
+public class MathUtils {
     public static final BigInteger INTEGER_2 = new BigInteger("2");
 
     enum Method {
@@ -27,10 +26,10 @@ public class MathExponentiationUtils {
         if (n == 1) {
             return x;
         } else if (n % 2 == 0) {
-            return MathExponentiationUtils
+            return org.kornicameister.crypto.utils.MathUtils
                     .fastExponentiationBasic(n / 2, x.pow(2));
         }
-        return x.multiply(MathExponentiationUtils
+        return x.multiply(org.kornicameister.crypto.utils.MathUtils
                 .fastExponentiationBasic((n - 1) / 2, x.pow(2)));
     }
 
@@ -54,22 +53,48 @@ public class MathExponentiationUtils {
         return x1;
     }
 
-    public static BigInteger fastExponentiaton(int exponent, BigInteger base, final Method method) {
+    public static BigInteger fastExponentiation(int exponent, BigInteger base, final Method method) {
         assert base.compareTo(BigInteger.valueOf(0)) > 0;
         switch (method) {
             case BASIC:
-                return MathExponentiationUtils.fastExponentiationBasic(exponent, base);
+                return org.kornicameister.crypto.utils.MathUtils.fastExponentiationBasic(exponent, base);
             case MONTGOMERY:
-                return MathExponentiationUtils.fastExponentiationMontgomery(exponent, base);
+                return org.kornicameister.crypto.utils.MathUtils.fastExponentiationMontgomery(exponent, base);
         }
         return null;
     }
 
+    public static BigInteger random(BigInteger high, Random seed) {
+        BigInteger result;
+
+        do {
+            result = new BigInteger(high.bitLength(), seed);
+        } while (result.compareTo(high) >= 0);
+
+        return result;
+    }
+
+    public static BigInteger powModFast(BigInteger a, BigInteger b, BigInteger q) {
+        BigInteger i, result, x;
+        result = BigInteger.ONE;
+        x = a.mod(q);
+
+        for (i = BigInteger.ONE; i.compareTo(b) <= 0; i = i.shiftLeft(1)) {
+            x = x.mod(q);
+            if (b.and(i).compareTo(BigInteger.ZERO) != 0) {
+                result = result.multiply(x);
+                result = result.mod(q);
+            }
+            x = x.multiply(x);
+        }
+        return result;
+    }
+
     public static boolean isOdd(BigInteger base) {
-        return !MathExponentiationUtils.isEven(base);
+        return !org.kornicameister.crypto.utils.MathUtils.isEven(base);
     }
 
     public static boolean isEven(BigInteger base) {
-        return base.mod(MathExponentiationUtils.INTEGER_2).equals(INTEGER_0);
+        return base.mod(org.kornicameister.crypto.utils.MathUtils.INTEGER_2).equals(BigInteger.ZERO);
     }
 }

@@ -10,7 +10,7 @@ import java.math.BigInteger;
  * @author kornicameister
  * @since 0.0.1
  */
-public class MathExponentiationUtilsTest {
+public class MathUtilsTest {
     private BigInteger base;
     private int exponent;
     private BigInteger result;
@@ -27,10 +27,10 @@ public class MathExponentiationUtilsTest {
         System.out.print("Basic :: ");
         Assert.assertEquals("By basic not equals",
                 this.result,
-                MathExponentiationUtils.fastExponentiaton(
+                org.kornicameister.crypto.utils.MathUtils.fastExponentiation(
                         this.exponent,
                         this.base,
-                        MathExponentiationUtils.Method.BASIC)
+                        org.kornicameister.crypto.utils.MathUtils.Method.BASIC)
         );
     }
 
@@ -39,10 +39,10 @@ public class MathExponentiationUtilsTest {
         System.out.print("Montgomery :: ");
         Assert.assertEquals("By basic not equals",
                 this.result,
-                MathExponentiationUtils.fastExponentiaton(
+                org.kornicameister.crypto.utils.MathUtils.fastExponentiation(
                         this.exponent,
                         this.base,
-                        MathExponentiationUtils.Method.MONTGOMERY)
+                        org.kornicameister.crypto.utils.MathUtils.Method.MONTGOMERY)
         );
     }
 }
