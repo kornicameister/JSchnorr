@@ -1,5 +1,7 @@
 package org.kornicameister.crypto.sqlite.annotations;
 
+import org.kornicameister.crypto.sqlite.enums.ColumnType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,13 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface Column {
-    enum Types {
-        BLOB,
-        INTEGER,
-        STRING
-    }
-
     String name();
 
-    Types type() default Types.STRING;
+    ColumnType type() default ColumnType.STRING;
 }

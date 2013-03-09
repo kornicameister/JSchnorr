@@ -5,14 +5,10 @@ import org.kornicameister.crypto.schnorr.SchnorrCryptoKey;
 import org.kornicameister.crypto.sqlite.annotations.Column;
 import org.kornicameister.crypto.sqlite.annotations.Id;
 import org.kornicameister.crypto.sqlite.annotations.Table;
-import org.kornicameister.crypto.utils.Pair;
 import org.kornicameister.crypto.utils.TimeUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,219 +76,163 @@ public class SQLiteController {
         }
     }
 
-    public Integer add(SchnorrCryptoKey data) throws Exception {
-        long startTime = System.nanoTime();
-        Table table = data.getClass().getAnnotation(Table.class);
-        Column column;
-        StringBuilder fields = new StringBuilder();
-        List<Pair<Column.Types, Object>> dataList = new ArrayList<>();
+    public Integer saveObject(SchnorrCryptoKey data) throws SQLException {
+        PreparedStatement pStatement = CONTROLLER
+                .connectionPool
+                .prepareStatement(this.getInsertQuery(data.getClass()));
+        List<java.lang.Object> objectList = this.getQueryData(data);
 
-        if (table == null) {
-            throw new Exception(String.format("%s is not persistent", data.getClass().getSimpleName()));
-        }
-
-        /**
-         * Reading  stuff from the passed object
-         */
-        String tableName = table.name();
-        final Field[] declaredFields = data.getClass().getDeclaredFields();
-        for (Field field : declaredFields) {
-            if ((column = field.getAnnotation(Column.class)) != null) {
-                field.setAccessible(true);
-                {
-                    fields.append(column.name());
-                    fields.append(',');
-                    switch (column.type()) {
-                        case INTEGER:
-                            try {
-                                dataList.add(new Pair<>(column.type(), field.get(data)));
-                            } catch (IllegalAccessException e) {
-                                LOGGER.warn(String.format("Could not read data from %s", field.getName()));
-                                return null;
-                            }
-                            break;
-                        case BLOB:
-                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                            ObjectOutputStream outputStream = new ObjectOutputStream(byteArrayOutputStream);
-                            outputStream.writeObject(field.get(data));
-                            byte[] rawBytes = byteArrayOutputStream.toByteArray();
-                            dataList.add(new Pair<Column.Types, Object>(column.type(), rawBytes));
-                        default:
-                            break;
-                    }
-                    LOGGER.info(String.format("Saved %s with values %s", field.getName(), field.get(data)));
-                }
-                field.setAccessible(false);
-            }
-        }
-
-        /**
-         * Building query
-         */
-        String query = INSERT;
-        for (int step = 0; step < 3; step++) {
-            String text;
-            switch (step) {
-                case 0:
-                    query = query.replaceFirst("%name%", tableName);
-                    LOGGER.info(String.format("Replaced table name with %s", tableName));
-                    break;
-                case 1:
-                    text = fields.deleteCharAt(fields.length() - 1).toString();
-                    query = query.replaceFirst("%fields%", text);
-                    LOGGER.info(String.format("Replaced fields with %s", text));
-                    break;
-                case 2: {
-                    StringBuilder questionMarkBuilder = new StringBuilder();
-                    for (int i = 0; i < dataList.size(); i++) {
-                        questionMarkBuilder.append('?');
-                        if (i != dataList.size() - 1) {
-                            questionMarkBuilder.append(',');
-                        }
-                    }
-                    text = questionMarkBuilder.toString();
-                    query = query.replaceFirst("%values%", text);
-                    LOGGER.info(String.format("Replaced values with %s", text));
-                    break;
-                }
-            }
-        }
-
-        PreparedStatement pStatement = CONTROLLER.connectionPool.prepareStatement(query);
         LOGGER.info(String.format("Ready to use query %s", pStatement));
-        int step = 1;
-        for (Pair<Column.Types, Object> pair : dataList) {
-            switch (pair.getFirst()) {
-                case INTEGER:
-                    pStatement.setInt(step++, (Integer) pair.getSecond());
-                    break;
-                case BLOB:
-                    pStatement.setBytes(step++, (byte[]) pair.getSecond());
-                    break;
-            }
+
+        for (int i = 0; i < objectList.size(); i++) {
+            pStatement.setObject(i + 1, objectList.get(i));
         }
 
         pStatement.execute();
-        pStatement.close();
 
-        LOGGER.info(String.format("SQLiteController :: insert executed, class=%s, fields=%s, time=%d",
-                SQLiteController.CONTROLLER,
-                fields.toString(),
-                TimeUtils.elapsedFromTime(startTime)));
+        ResultSet result = pStatement.getGeneratedKeys();
+        result.next();
+        Integer idKey = Integer.valueOf(result.getString(1));
+        data.setModelId(idKey);
+        pStatement.close();
 
         return data.getModelId();
     }
 
-    public Object get(Integer id, Class<? extends Object> aClass) {
-        long startTime = System.nanoTime();
-        Table table = aClass.getAnnotation(Table.class);
-        final Field[] declaredFields = aClass.getDeclaredFields();
+
+    public Object getObject(Integer id, Class clazz) throws SQLException {
+        String query = this.getSelectQuery(clazz, id);
+        PreparedStatement statement = CONTROLLER.connectionPool.prepareStatement(query);
+
+        ResultSet resultSet = statement.executeQuery();
+        resultSet.next();
+        Object cryptoKey = this.setObjectFromQueryResult(clazz, resultSet);
+        statement.close();
+
+        return cryptoKey;
+    }
+
+    private Object setObjectFromQueryResult(Class clazz, ResultSet resultSet) throws SQLException {
+        Object cryptoKey = null;
+        Id id;
         Column column;
-        StringBuilder fields = new StringBuilder();
-        String tableName = table.name();
+        try {
+            cryptoKey = clazz.newInstance();
+            for (Field field : clazz.getDeclaredFields()) {
+                if ((id = field.getAnnotation(Id.class)) != null) {
+                    column = id.column();
+                } else {
+                    column = field.getAnnotation(Column.class);
+                }
+                if (column != null) {
+                    field.setAccessible(true);
+                    switch (column.type()) {
+                        case INTEGER:
+                            field.set(cryptoKey, resultSet.getInt(column.name()));
+                            break;
+                        case BIG_INTEGER:
+                            byte[] bytes = resultSet.getBytes(column.name());
+                            field.set(cryptoKey, new BigInteger(bytes));
+                            break;
+                    }
+                    field.setAccessible(false);
+                }
+            }
+        } catch (InstantiationException e) {
+            LOGGER.fatal("Failed to instance an object", e);
+        } catch (IllegalAccessException e) {
+            LOGGER.fatal("Failed to access class constructor", e);
+        }
+        return cryptoKey;
+    }
+
+    private String getSelectQuery(Class clazz, Integer idWhere) {
+        String fields = this.getQueryColumns(clazz, idWhere).toString();
+        Table table = (Table) clazz.getAnnotation(Table.class);
+        Id id;
+        Column column = null;
+        for (Field field : clazz.getDeclaredFields()) {
+            if ((id = field.getAnnotation(Id.class)) != null) {
+                column = id.column();
+                break;
+            }
+        }
+
+        if (column != null) {
+            String query = SELECT_WHERE.replaceFirst("%fields%", fields).replaceFirst("%name%", table.name());
+            query = query.replaceFirst("%where%", String.format("%s=%d", column.name(), idWhere));
+            return query;
+        }
+
+        return null;
+    }
+
+    private List<java.lang.Object> getQueryData(Object data) {
+        Field[] declaredFields = data.getClass().getDeclaredFields();
+        List<java.lang.Object> objects = new ArrayList<>();
+
+        Column column;
+        try {
+            for (Field field : declaredFields) {
+                if ((column = field.getAnnotation(Column.class)) != null && field.getAnnotation(Id.class) == null) {
+                    field.setAccessible(true);
+                    switch (column.type()) {
+                        case INTEGER:
+                            objects.add(field.getInt(data));
+                            break;
+                        case BIG_INTEGER:
+                            BigInteger bi = (BigInteger) field.get(data);
+                            objects.add(bi.toByteArray());
+                            break;
+                    }
+                    field.setAccessible(false);
+                }
+            }
+        } catch (IllegalAccessException iae) {
+            LOGGER.fatal("Failed to retrieved query values by reflection", iae);
+            return null;
+        }
+
+        return objects;
+    }
+
+    private String getInsertQuery(Class clazz) {
+        Field[] declaredFields = clazz.getDeclaredFields();
+        StringBuilder columns = this.getQueryColumns(clazz, null), fields = new StringBuilder();
+        String tableName = ((Table) clazz.getAnnotation(Table.class)).name();
 
         for (Field field : declaredFields) {
-            if ((column = field.getAnnotation(Column.class)) != null) {
-                field.setAccessible(true);
+            if (field.getAnnotation(Column.class) != null && field.getAnnotation(Id.class) == null) {
                 {
-                    fields.append(column.name());
-                    fields.append(',');
-                    LOGGER.info(String.format("Created field with name %s", field.getName()));
-                }
-                field.setAccessible(false);
-            }
-        }
-
-        String query = SELECT_WHERE;
-        for (int step = 0; step < 3; step++) {
-            String text;
-            switch (step) {
-                case 0:
-                    query = query.replaceFirst("%name%", tableName);
-                    LOGGER.info(String.format("Replaced table name with %s", tableName));
-                    break;
-                case 1:
-                    text = fields.deleteCharAt(fields.length() - 1).toString();
-                    query = query.replaceFirst("%fields%", text);
-                    LOGGER.info(String.format("Replaced fields with %s", text));
-                    break;
-                case 2: {
-                    for (Field field : declaredFields) {
-                        if (field.getAnnotation(Id.class) != null) {
-                            column = field.getAnnotation(Column.class);
-                            field.setAccessible(true);
-                            {
-                                final String format = String.format("%s=%d", column.name(), id);
-                                query = query.replaceFirst("%where%", format);
-                                LOGGER.info(String.format("Replaced where with %s", format));
-                            }
-                            field.setAccessible(false);
-                        }
-                    }
-                    break;
+                    fields.append("?,");
                 }
             }
         }
+        String query = INSERT.replaceFirst("%name%", tableName);
+        query = query.replaceFirst("%fields%", columns.toString());
+        query = query.replaceFirst("%values%", fields.deleteCharAt(fields.length() - 1).toString());
 
-        boolean error = false;
-        ResultSet rs = null;
-        try {
-            Statement statement = CONTROLLER.connectionPool.createStatement();
-            rs = statement.executeQuery(query);
-        } catch (SQLException e) {
-            LOGGER.fatal(String.format("Failed to retrieve data by query %s", query), e);
-            error = true;
-        }
+        return query;
+    }
 
-        try {
-            if (!error) {
-                try {
-                    Object aObject = aClass.newInstance();
-
-                    for (Field field : declaredFields) {
-                        if ((column = field.getAnnotation(Column.class)) != null) {
-                            field.setAccessible(true);
-                            {
-                                switch (column.type()) {
-                                    case INTEGER:
-                                        field.set(aObject, rs.getInt(column.name()));
-                                        break;
-                                    case BLOB:
-                                        byte[] rsBytes = rs.getBytes(column.name());
-                                        Class<?>[] types = {byte[].class};
-                                        Constructor<? extends Object> constructor = field.getType().getConstructor(types);
-                                        Object blobObject = constructor.newInstance(rsBytes);
-                                        field.set(aObject, blobObject);
-                                        break;
-                                }
-                            }
-                            field.setAccessible(false);
-                        }
-                    }
-
-
-                    LOGGER.info(String.format("SQLiteController :: select executed, class=%s, fields=%s, time=%d",
-                            SQLiteController.CONTROLLER,
-                            fields.toString(),
-                            TimeUtils.elapsedFromTime(startTime)));
-                    rs.close();
-                    return aObject;
-                } catch (InstantiationException e) {
-                    LOGGER.fatal(String.format("Unable to create an object of %s by reflection", aClass.toString()), e);
-                } catch (IllegalAccessException e) {
-                    LOGGER.fatal(String.format("Unable to access an object's constructor of %s by reflection", aClass.toString()), e);
-                } catch (NoSuchMethodException e) {
-                    LOGGER.fatal(String.format("No such constructor found for %s", aClass), e);
-                } catch (InvocationTargetException e) {
-                    LOGGER.fatal(String.format("Failed to invoke constructor for %s", aClass), e);
-                } finally {
-                    rs.close();
+    private StringBuilder getQueryColumns(Class clazz, Integer idWhere) {
+        Field[] declaredFields = clazz.getDeclaredFields();
+        Column column;
+        Id id;
+        StringBuilder columns = new StringBuilder();
+        for (Field field : declaredFields) {
+            if (idWhere != null && (id = field.getAnnotation(Id.class)) != null) {
+                column = id.column();
+                columns.append(column.name() + ",");
+                LOGGER.info(String.format("Saved %s with values", field.getName()));
+            } else if ((column = field.getAnnotation(Column.class)) != null && field.getAnnotation(Id.class) == null) {
+                {
+                    columns.append(column.name() + ",");
+                    LOGGER.info(String.format("Saved %s with values", field.getName()));
                 }
             }
-        } catch (SQLException e) {
-            LOGGER.fatal(String.format("Unable to read data from fields for %s", aClass), e);
         }
-        return null;
+        return columns.deleteCharAt(columns.length() - 1);
     }
 
     @Override

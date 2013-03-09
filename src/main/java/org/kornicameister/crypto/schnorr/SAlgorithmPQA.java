@@ -16,38 +16,36 @@ import java.util.Random;
 public class SAlgorithmPQA {
     private final static Logger LOGGER = Logger.getLogger(SAlgorithmPQA.class);
     private static final int RADIX = 16;
-    private final int pBitLength;
-    private final int qBitLength;
     private final Random randomSeed;
+    private final SComplexity complexity;
     private BigInteger p, q, a;
     private int certainty;
 
-    private SAlgorithmPQA() {
+    private SAlgorithmPQA(SComplexity complexity) {
         this.p = null;
         this.q = null;
         this.a = null;
 
-        this.pBitLength = 1024;
-        this.qBitLength = 160;
+        this.complexity = complexity;
         this.certainty = 10;
 
         this.randomSeed = new Random(System.nanoTime());
 
         LOGGER.info(String.format("%s init variables pBitLength=%d, qBitLength=%d, certainty=%d",
                 SAlgorithmPQA.class.getSimpleName(),
-                this.pBitLength,
-                this.qBitLength,
+                this.complexity.getPBitLength(),
+                this.complexity.getQBitLength(),
                 this.certainty)
         );
     }
 
-    public static SAlgorithmPQA generate() {
-        SAlgorithmPQA sAlgorithm = new SAlgorithmPQA();
+    public static SAlgorithmPQA generate(SComplexity complexity) {
+        SAlgorithmPQA sAlgorithm = new SAlgorithmPQA(complexity);
 
         BigInteger q = generateQFactor(
                 sAlgorithm,
                 BigInteger.probablePrime(
-                        sAlgorithm.qBitLength,
+                        sAlgorithm.complexity.getPBitLength(),
                         sAlgorithm.randomSeed
                 )
         );
@@ -98,7 +96,7 @@ public class SAlgorithmPQA {
         BigInteger mR;
         BigInteger p;
         while (true) {
-            m = new BigInteger(sAlgorithm.pBitLength, sAlgorithm.randomSeed);
+            m = new BigInteger(sAlgorithm.complexity.getPBitLength(), sAlgorithm.randomSeed);
             mR = m.mod(q.multiply(org.kornicameister.crypto.utils.MathUtils.INTEGER_2));
             p = m.subtract(mR).subtract(BigInteger.ONE);
             if (p.isProbablePrime(sAlgorithm.certainty)) {
@@ -147,6 +145,12 @@ public class SAlgorithmPQA {
         );
     }
 
+    public static SAlgorithmPQA loadFromProperties(SComplexity complexity, String pFile) throws IOException {
+        SAlgorithmPQA pqa = new SAlgorithmPQA(complexity);
+        pqa.fromProperties(pFile);
+        return pqa;
+    }
+
     public BigInteger getP() {
         return p;
     }
@@ -157,5 +161,9 @@ public class SAlgorithmPQA {
 
     public BigInteger getA() {
         return a;
+    }
+
+    public SComplexity getComplexity() {
+        return complexity;
     }
 }

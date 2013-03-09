@@ -4,8 +4,10 @@ import org.kornicameister.crypto.sqlite.SQLiteController;
 import org.kornicameister.crypto.sqlite.annotations.Column;
 import org.kornicameister.crypto.sqlite.annotations.Id;
 import org.kornicameister.crypto.sqlite.annotations.Table;
+import org.kornicameister.crypto.sqlite.enums.ColumnType;
 
 import java.math.BigInteger;
+import java.sql.SQLException;
 
 /**
  * Class represents data model that is to be persisted
@@ -17,28 +19,26 @@ import java.math.BigInteger;
  * @since 0.0.1
  */
 
-@Table(name = "keys2")
+@Table(name = "schnorr3")
 public class SchnorrCryptoKey {
-    protected SQLiteController controller;
 
-    @Id
-    @Column(name = "id", type = Column.Types.INTEGER)
+    @Id(column = @Column(name = "id", type = ColumnType.INTEGER))
     protected Integer modelId;
 
-    @Column(name = "pub_key", type = Column.Types.BLOB)
+    @Column(name = "pub_key", type = ColumnType.BIG_INTEGER)
     private BigInteger publicKey;
 
-    @Column(name = "priv_key", type = Column.Types.BLOB)
+    @Column(name = "priv_key", type = ColumnType.BIG_INTEGER)
     private BigInteger privateKey;
 
+    @Column(name = "e_factor", type = ColumnType.BIG_INTEGER)
     private BigInteger factorE;
+
+    @Column(name = "y_factor", type = ColumnType.BIG_INTEGER)
+    private BigInteger factorY;
 
     public SchnorrCryptoKey() {
 
-    }
-
-    public SchnorrCryptoKey(SQLiteController controller) {
-        this.controller = controller;
     }
 
     public Integer getModelId() {
@@ -73,12 +73,21 @@ public class SchnorrCryptoKey {
         this.factorE = factorE;
     }
 
-    public Integer addSchnorrKey(SchnorrCryptoKey data) throws Exception {
-        return this.controller.add(data);
+    public void setFactorY(BigInteger factorX) {
+        this.factorY = factorX;
     }
 
-    public SchnorrCryptoKey getSchnorrKey(Integer id) {
-        return (SchnorrCryptoKey) this.controller.get(id, this.getClass());
+    public BigInteger getFactorY() {
+        return factorY;
+    }
+
+    public static Integer addSchnorrKey(SchnorrCryptoKey data,
+                                        SQLiteController controller) throws SQLException {
+        return controller.saveObject(data);
+    }
+
+    public static SchnorrCryptoKey getSchnorrKey(Integer id, SQLiteController controller) throws SQLException {
+        return (SchnorrCryptoKey) controller.getObject(id, SchnorrCryptoKey.class);
     }
 
     @Override
@@ -89,5 +98,29 @@ public class SchnorrCryptoKey {
         sb.append(", factorE=").append(factorE);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(java.lang.Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SchnorrCryptoKey)) return false;
+
+        SchnorrCryptoKey cryptoKey = (SchnorrCryptoKey) o;
+
+        return !(factorE != null ? !factorE.equals(cryptoKey.factorE) : cryptoKey.factorE != null)
+                && !(factorY != null ? !factorY.equals(cryptoKey.factorY) : cryptoKey.factorY != null)
+                && !(modelId != null ? !modelId.equals(cryptoKey.modelId) : cryptoKey.modelId != null)
+                && !(privateKey != null ? !privateKey.equals(cryptoKey.privateKey) : cryptoKey.privateKey != null)
+                && !(publicKey != null ? !publicKey.equals(cryptoKey.publicKey) : cryptoKey.publicKey != null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = modelId != null ? modelId.hashCode() : 0;
+        result = 31 * result + (publicKey != null ? publicKey.hashCode() : 0);
+        result = 31 * result + (privateKey != null ? privateKey.hashCode() : 0);
+        result = 31 * result + (factorE != null ? factorE.hashCode() : 0);
+        result = 31 * result + (factorY != null ? factorY.hashCode() : 0);
+        return result;
     }
 }

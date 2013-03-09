@@ -12,6 +12,6 @@ import static org.junit.Assert.assertTrue;
 public class SQLiteControllerTest extends SchnorrTest {
     @Test
     public void testIsConnected() throws Exception {
-        assertTrue("Mongo is not connected", this.SQLiteController.isConnected());
+        assertTrue("Mongo is not connected", this.sqlitecontroller.isConnected());
     }
 }
