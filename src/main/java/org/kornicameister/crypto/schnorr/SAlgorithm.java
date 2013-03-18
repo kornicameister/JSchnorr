@@ -21,6 +21,31 @@ import java.util.Random;
  * holds algorithm's parameters. To work properly this class requires
  * working {@link SQLiteController}, by which it can save and retrieve
  * {@link SchnorrCryptoKey} objects.
+ * </br>
+ * <h2>About keys and functionality [private,public]</h2>
+ * <h3>Keys</h3>
+ * <ol>
+ * <li>Private key - Is randomly chosen number less than q</li>
+ * <li>Public key - Is computed from this equation: <pre>pub_key = (a ^ priv_key) mod p</pre></li>
+ * </ol>
+ * <h3>Signing</h3>
+ * <ol>
+ * <li>Generating randomly chosen kSingParam smaller than q</li>
+ * <li>Computing rSignParam from this equation: <pre>rSignParam = (a ^ kSingParam) mod p</pre></li>
+ * <li>Generating signature
+ * <ol>
+ *     <li>eSignParam computed by hash coding the message via rSignParam seed</li>
+ *     <li>ySignParam computed from this equation: <pre>ySignParam = kSignParam + (privKey * eSignParam) mod q</pre></li>
+ * </ol>
+ * </li>
+ * </ol>
+ * <h3>Verifying</h3>
+ * Verifying is the process that does exactly same job as signing but in reverse way.
+ * <ol>
+ * <li>Computing x' from this equation = <pre>x' = ((a ^ ySignParam) * (pubKey * eSignParam)) mod p</pre></li>
+ * <li>Computing hash code again using provided input and computed x'</li>
+ * <li>compares eSignParam' with persisted eSingParam from cryptoKey used in signing</li>
+ * </ol>
  *
  * @author kornicameister
  * @since 0.0.1
@@ -72,7 +97,9 @@ public class SAlgorithm {
      * </ul>
      *
      * @param message message
+     *
      * @return id of the record
+     *
      * @see SchnorrCryptoKey
      */
     public Integer sign(final String message) throws NoSuchAlgorithmException {
@@ -81,11 +108,11 @@ public class SAlgorithm {
         BigInteger rSignParam, ySignParam, eSingParam, kSignParam;
 
         // keys
-        privKey = new BigInteger(this.keyLength, this.seed);
+        privKey = new BigInteger(this.keyLength - 1, this.seed);
         pubKey = this.pqa.getA().modPow(privKey.negate(), this.pqa.getP());
 
         // signing
-        kSignParam = new BigInteger(this.keyLength, this.seed);
+        kSignParam = new BigInteger(this.keyLength - 1, this.seed);
         rSignParam = MathUtils.powModFast(this.pqa.getA(), kSignParam, this.pqa.getP());    // x = a^r mod p
 
         // signature
@@ -117,11 +144,11 @@ public class SAlgorithm {
         BigInteger rSignParam, ySignParam, eSingParam, kSignParam;
 
         // keys
-        privKey = new BigInteger(this.keyLength, this.seed);
+        privKey = new BigInteger(this.keyLength - 1, this.seed);
         pubKey = this.pqa.getA().modPow(privKey.negate(), this.pqa.getP());
 
         // signing
-        kSignParam = new BigInteger(this.keyLength, this.seed);
+        kSignParam = new BigInteger(this.keyLength - 1, this.seed);
         rSignParam = MathUtils.powModFast(this.pqa.getA(), kSignParam, this.pqa.getP());    // x = a^r mod p
 
         // signature
@@ -149,7 +176,9 @@ public class SAlgorithm {
      *
      * @param message  to be verified
      * @param recordId against signature hidden in the record available in db
+     *
      * @return true if message is valid
+     *
      * @throws NoSuchAlgorithmException
      */
     public boolean verify(String message, Integer recordId) throws NoSuchAlgorithmException {
@@ -209,6 +238,7 @@ public class SAlgorithm {
      *
      * @param message   message to calculate hash code
      * @param signParam signing param
+     *
      * @return hash result
      */
     public BigInteger hashCode(String message, BigInteger signParam) throws NoSuchAlgorithmException {
@@ -226,7 +256,9 @@ public class SAlgorithm {
      *
      * @param message   message to calculate hash code
      * @param signParam signing param
+     *
      * @return hash result
+     *
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */

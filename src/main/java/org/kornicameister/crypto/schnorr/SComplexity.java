@@ -1,6 +1,11 @@
 package org.kornicameister.crypto.schnorr;
 
 /**
+ * Pretty handy enum that describes DSA (Schnorr) complexity.
+ * Contains two numbers where first one describes bit-length of
+ * <b>p</b> param and the second one is related to the <b>q's</q>
+ * bit-length.
+ * 
  * @author kornicameister
  * @since 0.0.1
  */
