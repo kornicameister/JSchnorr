@@ -21,7 +21,7 @@ public class SAlgorithmPQATest extends SchnorrTest {
     @Before
     public void setUp() throws Exception, PQAGenerationException {
         this.certainty = 10;
-        this.pqa = SAlgorithmPQA.generate(SComplexity.S_320);
+        this.pqa = SAlgorithmPQA.generate(SComplexity.S_512);
     }
 
     @Test

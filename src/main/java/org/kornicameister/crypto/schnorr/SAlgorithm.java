@@ -35,8 +35,8 @@ import java.util.Random;
  * <li>Computing rSignParam from this equation: <pre>rSignParam = (a ^ kSingParam) mod p</pre></li>
  * <li>Generating signature
  * <ol>
- *     <li>eSignParam computed by hash coding the message via rSignParam seed</li>
- *     <li>ySignParam computed from this equation: <pre>ySignParam = kSignParam + (privKey * eSignParam) mod q</pre></li>
+ * <li>eSignParam computed by hash coding the message via rSignParam seed</li>
+ * <li>ySignParam computed from this equation: <pre>ySignParam = kSignParam + (privKey * eSignParam) mod q</pre></li>
  * </ol>
  * </li>
  * </ol>
@@ -98,9 +98,7 @@ public class SAlgorithm {
      * </ul>
      *
      * @param message message
-     *
      * @return id of the record
-     *
      * @see SchnorrCryptoKey
      */
     public Integer sign(final String message) throws NoSuchAlgorithmException {
@@ -177,9 +175,7 @@ public class SAlgorithm {
      *
      * @param message  to be verified
      * @param recordId against signature hidden in the record available in db
-     *
      * @return true if message is valid
-     *
      * @throws NoSuchAlgorithmException
      */
     public boolean verify(String message, Integer recordId) throws NoSuchAlgorithmException {
@@ -239,7 +235,6 @@ public class SAlgorithm {
      *
      * @param message   message to calculate hash code
      * @param signParam signing param
-     *
      * @return hash result
      */
     public BigInteger hashCode(String message, BigInteger signParam) throws NoSuchAlgorithmException {
@@ -257,9 +252,7 @@ public class SAlgorithm {
      *
      * @param message   message to calculate hash code
      * @param signParam signing param
-     *
      * @return hash result
-     *
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
@@ -269,8 +262,10 @@ public class SAlgorithm {
         int count;
         MessageDigest sha512 = MessageDigest.getInstance(SHA_512);
 
-        while ((count = in.read(block)) != -1)
+        while ((count = in.read(block)) != -1) {
             sha512.update(block, 0, count);
+        }
+
         sha512.update(signParam.toByteArray());
 
         return new BigInteger(1, sha512.digest());
