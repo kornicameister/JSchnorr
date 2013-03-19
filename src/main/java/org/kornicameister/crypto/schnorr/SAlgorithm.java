@@ -275,4 +275,8 @@ public class SAlgorithm {
 
         return new BigInteger(1, sha512.digest());
     }
+
+    public SAlgorithmPQA getPQA() {
+        return this.pqa;
+    }
 }

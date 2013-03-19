@@ -27,6 +27,7 @@ public class SchnorrWindow extends JDialog {
     private JPanel fileChooser;
     private JButton loadPropertiesButton;
     private JTextField filePathTextField;
+    private JTextArea schnorrParamTA;
     private SAlgorithm sAlgorithm;
     private int selectedTab;
     private File toBeSignedFile;
@@ -86,6 +87,18 @@ public class SchnorrWindow extends JDialog {
                 selectedTab = tabbedPane1.getSelectedIndex();
             }
         });
+
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // If Nimbus is not available, you can set the GUI to another look and feel.
+        }
+
     }
 
     private void onOK() {
@@ -117,7 +130,7 @@ public class SchnorrWindow extends JDialog {
     private void onSignAction() {
         Integer id = null;
         switch (selectedTab) {
-            case 0: {
+            case 1: {
                 String message = this.textArea1.getText();
                 try {
                     id = this.sAlgorithm.sign(message);
@@ -129,7 +142,7 @@ public class SchnorrWindow extends JDialog {
                 }
             }
             break;
-            case 1: {
+            case 2: {
                 try {
                     id = this.sAlgorithm.sign(new FileInputStream(this.toBeSignedFile));
                 } catch (Exception e) {
@@ -146,7 +159,7 @@ public class SchnorrWindow extends JDialog {
         Integer id = Integer.valueOf(this.textField1.getText());
 
         switch (selectedTab) {
-            case 0: {
+            case 1: {
                 try {
                     String message = this.textArea1.getText();
                     if (this.sAlgorithm.verify(message, id)) {
@@ -165,7 +178,7 @@ public class SchnorrWindow extends JDialog {
                 }
             }
             break;
-            case 1: {
+            case 2: {
                 try {
                     if (this.sAlgorithm.verify(new FileInputStream(this.toBeSignedFile), id)) {
                         JOptionPane.showMessageDialog(null,
@@ -209,6 +222,9 @@ public class SchnorrWindow extends JDialog {
                 this.sAlgorithm = new SAlgorithm(
                         SAlgorithmPQA.loadFromProperties(SComplexity.S_320, file.getAbsolutePath()),
                         SQLiteController.getConnection(file));
+                StringBuilder builder = new StringBuilder();
+                builder.append(this.sAlgorithm.getPQA());
+                this.schnorrParamTA.setText(builder.toString());
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e.getStackTrace(), "Bad error", JOptionPane.ERROR_MESSAGE);
             }

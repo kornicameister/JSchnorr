@@ -298,4 +298,16 @@ public class SAlgorithmPQA {
     public SComplexity getComplexity() {
         return complexity;
     }
+
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("SAlgorithmPQA{\n");
+        sb.append("p=").append(p).append("\n");
+        sb.append("q=").append(q).append("\n");
+        sb.append("a=").append(a).append("\n");
+        sb.append("complexity=").append(complexity).append("\n");
+        sb.append('}');
+        return sb.toString();
+    }
 }
