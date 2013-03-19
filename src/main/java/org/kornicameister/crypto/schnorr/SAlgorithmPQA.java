@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +45,7 @@ public class SAlgorithmPQA {
         this.complexity = complexity;
         this.certainty = 10;
 
-        this.randomSeed = new Random(System.nanoTime());
+        this.randomSeed = new SecureRandom();
 
         LOGGER.info(String.format("%s init variables pBitLength=%d, qBitLength=%d, certainty=%d",
                 SAlgorithmPQA.class.getSimpleName(),

@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.Random;
 
@@ -81,7 +82,7 @@ public class SAlgorithm {
                 break;
         }
 
-        this.seed = new Random(System.nanoTime());
+        this.seed = new SecureRandom();
     }
 
     /**
